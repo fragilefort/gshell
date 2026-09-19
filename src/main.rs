@@ -1,8 +1,14 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
-fn main() {
-    // TODO: Uncomment the code below to pass the first stage
+fn main() -> Result<()> {
     print!("$ ");
     io::stdout().flush().unwrap();
+
+    let mut buffer = String::new();
+    let stdin = io::stdin();
+    stdin.read_line(&mut buffer)?;
+    print!("{}: command not found!", buffer);
+
+    Ok(())
 }
