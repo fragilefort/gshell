@@ -10,8 +10,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let stdin = io::stdin();
         stdin.read_line(&mut buffer)?;
         let buffer = buffer.trim().to_string();
-        print!("{}: command not found", buffer);
-
-        return Ok(());
+        println!("{}: command not found", buffer);
     }
 }
