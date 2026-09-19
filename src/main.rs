@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
-fn main() -> Result<()> {
+fn main() {
     print!("$ ");
     io::stdout().flush().unwrap();
 
@@ -9,6 +9,4 @@ fn main() -> Result<()> {
     let stdin = io::stdin();
     stdin.read_line(&mut buffer)?;
     print!("{}: command not found!", buffer);
-
-    Ok(())
 }
