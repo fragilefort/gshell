@@ -8,6 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer = String::new();
     let stdin = io::stdin();
     stdin.read_line(&mut buffer)?;
-    print!("{}: command not found!", buffer);
+    buffer = buffer.trim().to_string();
+    print!("{}: command not found", buffer);
     Ok(())
 }
