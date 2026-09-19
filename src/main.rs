@@ -9,7 +9,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut buffer = String::new();
         let stdin = io::stdin();
         stdin.read_line(&mut buffer)?;
-        let buffer = buffer.trim().to_string();
+        let buffer = buffer.trim();
+        if buffer == "exit" {
+            return Ok(());
+        }
         println!("{}: command not found", buffer);
     }
 }
