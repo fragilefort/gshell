@@ -20,10 +20,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut buffer = String::new();
         let stdin = io::stdin();
         stdin.read_line(&mut buffer)?;
-        let buffer = buffer.trim();
-        match COMMANDS.get(buffer) {
-            Some(command) => call(*command, None)?,
-            None => println!("{}: command not found", buffer),
+        let (command, remainder) = buffer.trim().split_once(' ').unwrap_or((buffer.trim(), ""));
+
+        match COMMANDS.get(command) {
+            Some(fun) => call(*fun, Some(remainder))?,
+            None => println!("{}: command not found", command),
         }
     }
 }
