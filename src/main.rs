@@ -9,6 +9,7 @@ static COMMANDS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
     HashMap::from([
         ("exit", shell_exit as CommandFn),
         ("echo", echo as CommandFn),
+        ("type", type_ as CommandFn),
     ])
 });
 
@@ -44,5 +45,21 @@ fn echo(_args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
             println!("{}", text);
             Ok(())
         }
+    }
+}
+
+fn type_(_args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+    match _args {
+        None => Ok(()),
+        Some(command) => match COMMANDS.get(command) {
+            None => {
+                println!("{}: not found", command);
+                Ok(())
+            }
+            Some(_) => {
+                println!("{} is a shell builtin", command);
+                Ok(())
+            }
+        },
     }
 }
