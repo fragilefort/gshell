@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use std::io::{self, Write};
 use std::sync::LazyLock;
 
-type CommandFn = fn(Option<&str>) -> Result<(), Box<dyn std::error::Error>>;
+type CommandFn = fn(Option<&str>) -> Result<(), Err>;
+type Err = Box<dyn std::error::Error>;
 
 static COMMANDS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
     HashMap::from([
@@ -13,7 +14,7 @@ static COMMANDS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
     ])
 });
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Err> {
     loop {
         print!("$ ");
         io::stdout().flush().unwrap();
@@ -30,15 +31,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn call(f: CommandFn, args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+fn call(f: CommandFn, args: Option<&str>) -> Result<(), Err> {
     f(args)
 }
 
-fn shell_exit(_args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+fn shell_exit(_args: Option<&str>) -> Result<(), Err> {
     std::process::exit(0);
 }
 
-fn echo(_args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+fn echo(_args: Option<&str>) -> Result<(), Err> {
     match _args {
         None => Ok(()),
         Some(text) => {
@@ -48,7 +49,7 @@ fn echo(_args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn type_(_args: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+fn type_(_args: Option<&str>) -> Result<(), Err> {
     match _args {
         None => Ok(()),
         Some(command) => match COMMANDS.get(command) {
