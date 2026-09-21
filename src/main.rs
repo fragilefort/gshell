@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::env;
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 type CommandFn = fn(Option<&str>) -> Result<(), Err>;
@@ -11,6 +13,19 @@ static COMMANDS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
         ("exit", shell_exit as CommandFn),
         ("echo", echo as CommandFn),
         ("type", type_ as CommandFn),
+    ])
+});
+
+enum CommandType {
+    Exec,
+    Builtin,
+}
+
+static COMMAND_TYPES: LazyLock<HashMap<&'static str, CommandType>> = LazyLock::new(|| {
+    HashMap::from([
+        ("exit", CommandType::Builtin),
+        ("echo", CommandType::Builtin),
+        ("", CommandType::Exec),
     ])
 });
 
@@ -62,5 +77,13 @@ fn type_(_args: Option<&str>) -> Result<(), Err> {
                 Ok(())
             }
         },
+    }
+}
+
+fn find_exec(command: &str) -> Option<PathBuf> {
+    let key = "PATH";
+    match env::var_os(key) {
+        Some(paths) => env::split_paths(&paths).find(|x| x.join(command).is_file()),
+        None => None,
     }
 }
