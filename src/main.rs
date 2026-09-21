@@ -77,8 +77,6 @@ fn type_(_args: Option<&str>) -> Result<(), Err> {
 fn find_exec(command: &str) -> Option<PathBuf> {
     let path = env::var_os("PATH")?;
 
-    println!("DEBUG PATH: {:?}", path);
-
     env::split_paths(&path)
         .map(|path| path.join(command))
         .find(|path| is_executable(path))
