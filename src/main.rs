@@ -62,7 +62,7 @@ fn type_(_args: Option<&str>) -> Result<(), Err> {
             }
             None => match find_exec(command) {
                 Some(path) => {
-                    println!("{} is {:?}", command, path);
+                    println!("{} is {}", command, path.display());
                     Ok(())
                 }
                 None => {
@@ -79,6 +79,7 @@ fn find_exec(command: &str) -> Option<PathBuf> {
         .map(|path| path.join(command))
         .find(|path| is_executable(path))
 }
+
 fn is_executable(file: &PathBuf) -> bool {
     match file.metadata() {
         Ok(meta) => meta.is_file() && (meta.permissions().mode() & 0111) != 0,
