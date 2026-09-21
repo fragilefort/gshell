@@ -16,6 +16,7 @@ static BUILTINS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
         ("exit", shell_exit as CommandFn),
         ("echo", echo as CommandFn),
         ("type", type_ as CommandFn),
+        ("pwd", pwd as CommandFn),
     ])
 });
 
@@ -100,4 +101,9 @@ fn execute_program(command: &str, args: &str) {
         .expect("failed to execute process");
 
     io::stdout().write_all(&output.stdout).unwrap();
+}
+
+fn pwd(_args: Option<&str>) -> Result<(), Err> {
+    println!("{}", env::current_dir()?.display());
+    Ok(())
 }
