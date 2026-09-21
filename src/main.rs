@@ -3,6 +3,7 @@ use std::env;
 #[allow(unused_imports)]
 use std::io::{self, Write};
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
@@ -82,9 +83,8 @@ fn find_exec(command: &str) -> Option<PathBuf> {
         .find(|path| is_executable(path))
 }
 
-fn is_executable(file: &PathBuf) -> bool {
-    match file.metadata() {
-        Ok(meta) => meta.is_file() && (meta.permissions().mode() & 0111) != 0,
-        Err(_) => false,
-    }
+fn is_executable(file: &Path) -> bool {
+    file.metadata()
+        .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+        .unwrap_or(false)
 }
