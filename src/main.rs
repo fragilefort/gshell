@@ -5,6 +5,7 @@ use std::io::{self, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
+use std::process::Command;
 use std::sync::LazyLock;
 
 type CommandFn = fn(Option<&str>) -> Result<(), Err>;
@@ -30,7 +31,10 @@ fn main() -> Result<(), Err> {
 
         match BUILTINS.get(command) {
             Some(fun) => call(*fun, Some(remainder))?,
-            None => println!("{}: command not found", command),
+            None => match find_exec(command) {
+                Some(exec) => execute_program(&exec, remainder),
+                None => println!("{}: command not found", command),
+            },
         }
     }
 }
@@ -87,4 +91,13 @@ fn is_executable(file: &Path) -> bool {
     file.metadata()
         .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
         .unwrap_or(false)
+}
+
+fn execute_program(path: &Path, args: &str) {
+    let output = Command::new(path)
+        .args(args.split_whitespace())
+        .output()
+        .expect("failed to execute process");
+
+    io::stdout().write_all(&output.stdout).unwrap();
 }
