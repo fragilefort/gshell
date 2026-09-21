@@ -32,7 +32,7 @@ fn main() -> Result<(), Err> {
         match BUILTINS.get(command) {
             Some(fun) => call(*fun, Some(remainder))?,
             None => match find_exec(command) {
-                Some(exec) => execute_program(&exec, remainder),
+                Some(_) => execute_program(&command, remainder),
                 None => println!("{}: command not found", command),
             },
         }
@@ -93,8 +93,8 @@ fn is_executable(file: &Path) -> bool {
         .unwrap_or(false)
 }
 
-fn execute_program(path: &Path, args: &str) {
-    let output = Command::new(path)
+fn execute_program(command: &str, args: &str) {
+    let output = Command::new(command)
         .args(args.split_whitespace())
         .output()
         .expect("failed to execute process");
