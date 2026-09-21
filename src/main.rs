@@ -2,30 +2,18 @@ use std::collections::HashMap;
 use std::env;
 #[allow(unused_imports)]
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
+use std::os::unix::fs::PermissionsExt;
+use std::path::PathBuf;
 use std::sync::LazyLock;
 
 type CommandFn = fn(Option<&str>) -> Result<(), Err>;
 type Err = Box<dyn std::error::Error>;
 
-static COMMANDS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
+static BUILTINS: LazyLock<HashMap<&'static str, CommandFn>> = LazyLock::new(|| {
     HashMap::from([
         ("exit", shell_exit as CommandFn),
         ("echo", echo as CommandFn),
         ("type", type_ as CommandFn),
-    ])
-});
-
-enum CommandType {
-    Exec,
-    Builtin,
-}
-
-static COMMAND_TYPES: LazyLock<HashMap<&'static str, CommandType>> = LazyLock::new(|| {
-    HashMap::from([
-        ("exit", CommandType::Builtin),
-        ("echo", CommandType::Builtin),
-        ("", CommandType::Exec),
     ])
 });
 
@@ -39,7 +27,7 @@ fn main() -> Result<(), Err> {
         stdin.read_line(&mut buffer)?;
         let (command, remainder) = buffer.trim().split_once(' ').unwrap_or((buffer.trim(), ""));
 
-        match COMMANDS.get(command) {
+        match BUILTINS.get(command) {
             Some(fun) => call(*fun, Some(remainder))?,
             None => println!("{}: command not found", command),
         }
@@ -67,23 +55,33 @@ fn echo(_args: Option<&str>) -> Result<(), Err> {
 fn type_(_args: Option<&str>) -> Result<(), Err> {
     match _args {
         None => Ok(()),
-        Some(command) => match COMMANDS.get(command) {
-            None => {
-                println!("{}: not found", command);
-                Ok(())
-            }
+        Some(command) => match BUILTINS.get(command) {
             Some(_) => {
                 println!("{} is a shell builtin", command);
                 Ok(())
             }
+            None => match find_exec(command) {
+                Some(path) => {
+                    println!("{} is {:?}", command, path);
+                    Ok(())
+                }
+                None => {
+                    println!("{}: not found", command);
+                    Ok(())
+                }
+            },
         },
     }
 }
 
 fn find_exec(command: &str) -> Option<PathBuf> {
-    let key = "PATH";
-    match env::var_os(key) {
-        Some(paths) => env::split_paths(&paths).find(|x| x.join(command).is_file()),
-        None => None,
+    env::split_paths(&env::var_os("PATH")?)
+        .map(|path| path.join(command))
+        .find(|path| is_executable(path))
+}
+fn is_executable(file: &PathBuf) -> bool {
+    match file.metadata() {
+        Ok(meta) => meta.is_file() && (meta.permissions().mode() & 0111) != 0,
+        Err(_) => false,
     }
 }
